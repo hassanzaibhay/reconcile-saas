@@ -1,0 +1,25 @@
+[versions]
+spring-boot         = "3.5.15"
+spring-modulith     = "1.4.12"
+spotless            = "8.7.0"
+palantir-java-format = "2.93.0"
+testcontainers      = "1.21.4"
+archunit            = "1.4.2"
+springdoc-openapi   = "2.8.17"
+dependency-management = "1.1.7"
+java                = "21"
+
+[libraries]
+springdoc-openapi-ui        = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui",      version.ref = "springdoc-openapi" }
+archunit-junit5             = { module = "com.tngtech.archunit:archunit-junit5",                    version.ref = "archunit" }
+testcontainers-bom          = { module = "org.testcontainers:testcontainers-bom",                  version.ref = "testcontainers" }
+spring-modulith-bom         = { module = "org.springframework.modulith:spring-modulith-bom",        version.ref = "spring-modulith" }
+spring-modulith-starter-core = { module = "org.springframework.modulith:spring-modulith-starter-core" }
+spring-modulith-starter-jpa  = { module = "org.springframework.modulith:spring-modulith-starter-jpa" }
+spring-modulith-events-jpa   = { module = "org.springframework.modulith:spring-modulith-events-jpa" }
+spring-modulith-starter-test = { module = "org.springframework.modulith:spring-modulith-starter-test" }
+
+[plugins]
+spring-boot               = { id = "org.springframework.boot",      version.ref = "spring-boot" }
+spring-dependency-management = { id = "io.spring.dependency-management", version.ref = "dependency-management" }
+spotless                  = { id = "com.diffplug.spotless",          version.ref = "spotless" }

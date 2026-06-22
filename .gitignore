@@ -1,0 +1,33 @@
+# Gradle
+.gradle/
+build/
+**/build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+
+# Spring Boot / app
+*.jar
+!gradle/wrapper/gradle-wrapper.jar
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Docker local overrides
+docker-compose.local.yml
+
+# AI-agent tooling — local only, never pushed
+.claude/
+CLAUDE.md
+*-prompt.md
+
+# OS
+.DS_Store
+Thumbs.db
