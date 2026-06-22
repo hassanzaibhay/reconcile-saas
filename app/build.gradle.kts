@@ -24,7 +24,7 @@ dependencies {
     runtimeOnly("org.postgresql:postgresql")
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
 
-    testImplementation("org.testcontainers:redis")
+    testImplementation("org.testcontainers:testcontainers")
     testImplementation("org.springframework.security:spring-security-test")
 }
 

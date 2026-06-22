@@ -16,5 +16,5 @@ dependencies {
     testImplementation("org.springframework.modulith:spring-modulith-starter-test")
     testImplementation("com.tngtech.archunit:archunit-junit5:1.4.2")
     testImplementation("org.springframework.security:spring-security-test")
-    testImplementation("org.testcontainers:redis")
+    testImplementation("org.testcontainers:testcontainers")
 }

@@ -8,6 +8,6 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("jakarta.validation:jakarta.validation-api")
 
-    // Testcontainers Redis for integration tests
-    testImplementation("org.testcontainers:redis")
+    // Redis containers use GenericContainer from the base testcontainers artifact
+    testImplementation("org.testcontainers:testcontainers")
 }
