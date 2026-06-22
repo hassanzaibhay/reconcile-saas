@@ -44,3 +44,10 @@ sourceSets.test {
     compileClasspath += domain.output
     runtimeClasspath += domain.output
 }
+
+// Include domain classes in the main JAR so downstream consumers of
+// project(":xyz") automatically receive the domain types without needing
+// a separate dependency on the domainElements configuration.
+tasks.named<Jar>("jar") {
+    from(domain.output)
+}
