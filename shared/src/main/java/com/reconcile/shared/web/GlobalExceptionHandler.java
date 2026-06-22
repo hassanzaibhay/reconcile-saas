@@ -22,23 +22,16 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiError> onValidation(MethodArgumentNotValidException ex) {
-        List<ApiError.FieldError> errors =
-                ex.getBindingResult().getFieldErrors().stream()
-                        .map(f -> new ApiError.FieldError(f.getField(), f.getDefaultMessage()))
-                        .toList();
+        List<ApiError.FieldError> errors = ex.getBindingResult().getFieldErrors().stream()
+                .map(f -> new ApiError.FieldError(f.getField(), f.getDefaultMessage()))
+                .toList();
         ApiError body =
-                new ApiError(
-                        422,
-                        ErrorCode.VALIDATION_ERROR,
-                        "Validation failed",
-                        errors,
-                        java.time.Instant.now());
+                new ApiError(422, ErrorCode.VALIDATION_ERROR, "Validation failed", errors, java.time.Instant.now());
         return ResponseEntity.unprocessableEntity().body(body);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ApiError> onConstraint(ConstraintViolationException ex) {
-        return ResponseEntity.unprocessableEntity()
-                .body(ApiError.of(422, ErrorCode.VALIDATION_ERROR, ex.getMessage()));
+        return ResponseEntity.unprocessableEntity().body(ApiError.of(422, ErrorCode.VALIDATION_ERROR, ex.getMessage()));
     }
 }

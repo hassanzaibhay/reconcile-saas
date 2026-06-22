@@ -21,7 +21,6 @@ public record LedgerEntry(
             String reference,
             UUID ingestionRunId) {
         return new LedgerEntry(
-                LedgerEntryId.generate(), feedId, entryDate, amount, description, reference,
-                ingestionRunId);
+                LedgerEntryId.generate(), feedId, entryDate, amount, description, reference, ingestionRunId);
     }
 }

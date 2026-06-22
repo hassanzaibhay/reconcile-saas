@@ -38,8 +38,7 @@ public class JpaLedgerEntryRepository implements LedgerEntryRepository {
     }
 
     @Override
-    public List<LedgerEntry> findByFeedIdAndDateRange(
-            String feedId, LocalDate from, LocalDate to) {
+    public List<LedgerEntry> findByFeedIdAndDateRange(String feedId, LocalDate from, LocalDate to) {
         return jpa.findByFeedIdAndDateRange(feedId, from, to).stream()
                 .map(LedgerEntryEntity::toDomain)
                 .toList();

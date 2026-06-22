@@ -21,13 +21,23 @@ class JpaNotificationStore implements NotificationStore {
     @Entity
     @Table(name = "audit_log")
     static class NotificationEntity {
-        @Id UUID id;
+        @Id
+        UUID id;
+
         String actor = "SYSTEM";
         String action;
-        @Column(name = "entity_type") String entityType = "NOTIFICATION";
-        @Column(name = "entity_id") String entityId;
-        @Column(columnDefinition = "jsonb") String payload;
-        @Column(name = "occurred_at") Instant occurredAt;
+
+        @Column(name = "entity_type")
+        String entityType = "NOTIFICATION";
+
+        @Column(name = "entity_id")
+        String entityId;
+
+        @Column(columnDefinition = "jsonb")
+        String payload;
+
+        @Column(name = "occurred_at")
+        Instant occurredAt;
 
         protected NotificationEntity() {}
 

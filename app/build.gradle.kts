@@ -30,8 +30,34 @@ dependencies {
     testImplementation("org.springframework.security:spring-security-test")
 }
 
+val integrationTest by sourceSets.creating {
+    java { srcDir("src/integrationTest/java") }
+    resources { srcDir("src/integrationTest/resources") }
+    compileClasspath += sourceSets.main.get().output + sourceSets.test.get().output
+    runtimeClasspath += sourceSets.main.get().output + sourceSets.test.get().output
+}
+
+configurations["integrationTestImplementation"].extendsFrom(configurations.testImplementation.get())
+configurations["integrationTestRuntimeOnly"].extendsFrom(configurations.testRuntimeOnly.get())
+
+tasks.register<Test>("integrationTest") {
+    description = "Runs integration tests (requires Docker/Testcontainers)"
+    group = "verification"
+    testClassesDirs = integrationTest.output.classesDirs
+    classpath = integrationTest.runtimeClasspath
+    useJUnitPlatform()
+    maxHeapSize = "1g"
+    jvmArgs("-XX:+UseG1GC")
+}
+
 springBoot {
     mainClass = "com.reconcile.app.Application"
+}
+
+// Spring Boot disables the plain jar task; re-enable so modulith-verification can depend on :app
+tasks.named<Jar>("jar") {
+    enabled = true
+    archiveClassifier = "plain"
 }
 
 tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {

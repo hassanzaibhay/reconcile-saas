@@ -15,17 +15,14 @@ public class DefaultMatchingEngine implements MatchingEngine {
     private final AuditDecisionRepository auditDecisionRepository;
     private final ApplicationEventPublisher events;
 
-    public DefaultMatchingEngine(
-            AuditDecisionRepository auditDecisionRepository,
-            ApplicationEventPublisher events) {
+    public DefaultMatchingEngine(AuditDecisionRepository auditDecisionRepository, ApplicationEventPublisher events) {
         this.auditDecisionRepository = auditDecisionRepository;
         this.events = events;
     }
 
     @Override
     @Transactional
-    public MatchRunResult run(
-            MatchRunId runId, List<MatchRule> rules, Iterable<LedgerEntry> entries) {
+    public MatchRunResult run(MatchRunId runId, List<MatchRule> rules, Iterable<LedgerEntry> entries) {
         List<LedgerEntry> pool = new ArrayList<>();
         entries.forEach(pool::add);
 
@@ -38,12 +35,9 @@ public class DefaultMatchingEngine implements MatchingEngine {
 
             boolean found = false;
             for (MatchRule rule : rules) {
-                Optional<LedgerEntry> counterpart =
-                        rule.match(
-                                candidate,
-                                pool.stream()
-                                        .filter(e -> !matched.contains(e.id()))
-                                        .toList());
+                Optional<LedgerEntry> counterpart = rule.match(
+                        candidate,
+                        pool.stream().filter(e -> !matched.contains(e.id())).toList());
                 if (counterpart.isPresent()) {
                     LedgerEntry other = counterpart.get();
                     matched.add(candidate.id());
@@ -57,15 +51,9 @@ public class DefaultMatchingEngine implements MatchingEngine {
             }
 
             if (!found) {
-                Discrepancy d =
-                        Discrepancy.of(runId, candidate.id(), Discrepancy.Reason.NO_COUNTERPART);
+                Discrepancy d = Discrepancy.of(runId, candidate.id(), Discrepancy.Reason.NO_COUNTERPART);
                 discrepancies.add(d);
-                recordDecision(
-                        runId,
-                        "NONE",
-                        candidate.id(),
-                        "UNMATCHED",
-                        Discrepancy.Reason.NO_COUNTERPART.name());
+                recordDecision(runId, "NONE", candidate.id(), "UNMATCHED", Discrepancy.Reason.NO_COUNTERPART.name());
             }
         }
 
@@ -75,17 +63,8 @@ public class DefaultMatchingEngine implements MatchingEngine {
     }
 
     private void recordDecision(
-            MatchRunId runId, String ruleId, LedgerEntryId entryId, String decision,
-            String reason) {
-        auditDecisionRepository.save(
-                new AuditDecision(
-                        UUID.randomUUID(),
-                        runId,
-                        ruleId,
-                        entryId,
-                        decision,
-                        reason,
-                        Instant.now(),
-                        "SYSTEM"));
+            MatchRunId runId, String ruleId, LedgerEntryId entryId, String decision, String reason) {
+        auditDecisionRepository.save(new AuditDecision(
+                UUID.randomUUID(), runId, ruleId, entryId, decision, reason, Instant.now(), "SYSTEM"));
     }
 }

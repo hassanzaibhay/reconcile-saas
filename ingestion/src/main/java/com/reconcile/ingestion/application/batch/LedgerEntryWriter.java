@@ -26,17 +26,14 @@ class LedgerEntryWriter implements ItemWriter<LedgerEntryDraft> {
 
     @Override
     public void write(Chunk<? extends LedgerEntryDraft> chunk) {
-        ledgerEntryRepository.saveAll(
-                chunk.getItems().stream()
-                        .map(
-                                draft ->
-                                        LedgerEntry.create(
-                                                draft.feedId(),
-                                                draft.entryDate(),
-                                                draft.amount(),
-                                                draft.description(),
-                                                draft.reference(),
-                                                ingestionRunId))
-                        .toList());
+        ledgerEntryRepository.saveAll(chunk.getItems().stream()
+                .map(draft -> LedgerEntry.create(
+                        draft.feedId(),
+                        draft.entryDate(),
+                        draft.amount(),
+                        draft.description(),
+                        draft.reference(),
+                        ingestionRunId))
+                .toList());
     }
 }

@@ -4,7 +4,6 @@ import com.reconcile.shared.domain.TenantContext;
 import com.reconcile.shared.domain.TenantScopedEvent;
 import java.lang.reflect.Method;
 import org.aopalliance.intercept.MethodInterceptor;
-import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
@@ -23,29 +22,26 @@ import org.springframework.stereotype.Component;
 public class TenantAwareEventListenerAdvice implements BeanPostProcessor {
 
     @Override
-    public Object postProcessAfterInitialization(Object bean, String beanName)
-            throws BeansException {
-        boolean hasModuleListener =
-                hasApplicationModuleListenerMethod(bean.getClass());
+    public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+        boolean hasModuleListener = hasApplicationModuleListenerMethod(bean.getClass());
         if (!hasModuleListener) {
             return bean;
         }
         ProxyFactory factory = new ProxyFactory(bean);
-        factory.addAdvice(
-                (MethodInterceptor)
-                        invocation -> {
-                            Object[] args = invocation.getArguments();
-                            if (args.length == 1 && args[0] instanceof TenantScopedEvent event
-                                    && isModuleListenerMethod(invocation.getMethod())) {
-                                try {
-                                    TenantContext.set(event.tenantId());
-                                    return invocation.proceed();
-                                } finally {
-                                    TenantContext.clear();
-                                }
-                            }
-                            return invocation.proceed();
-                        });
+        factory.addAdvice((MethodInterceptor) invocation -> {
+            Object[] args = invocation.getArguments();
+            if (args.length == 1
+                    && args[0] instanceof TenantScopedEvent event
+                    && isModuleListenerMethod(invocation.getMethod())) {
+                try {
+                    TenantContext.set(event.tenantId());
+                    return invocation.proceed();
+                } finally {
+                    TenantContext.clear();
+                }
+            }
+            return invocation.proceed();
+        });
         return factory.getProxy();
     }
 

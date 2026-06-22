@@ -18,28 +18,19 @@ class ReportingController {
     @GetMapping("/runs/{runId}")
     @Operation(summary = "Get reconciliation report for a run")
     ReconciliationReport getReport(@PathVariable UUID runId) {
-        long matched =
-                (long)
-                        em.createNativeQuery(
-                                        "SELECT COUNT(*) FROM match_result WHERE match_run_id = ?1")
-                                .setParameter(1, runId)
-                                .getSingleResult();
+        long matched = (long) em.createNativeQuery("SELECT COUNT(*) FROM match_result WHERE match_run_id = ?1")
+                .setParameter(1, runId)
+                .getSingleResult();
         @SuppressWarnings("unchecked")
-        List<Object[]> discRows =
-                em.createNativeQuery(
-                                "SELECT d.entry_id, d.reason FROM discrepancy d WHERE d.match_run_id = ?1")
-                        .setParameter(1, runId)
-                        .getResultList();
+        List<Object[]> discRows = em.createNativeQuery(
+                        "SELECT d.entry_id, d.reason FROM discrepancy d WHERE d.match_run_id = ?1")
+                .setParameter(1, runId)
+                .getResultList();
 
-        List<ReconciliationReport.DiscrepancySummary> summaries =
-                discRows.stream()
-                        .map(
-                                row ->
-                                        new ReconciliationReport.DiscrepancySummary(
-                                                (UUID) row[0], (String) row[1]))
-                        .toList();
+        List<ReconciliationReport.DiscrepancySummary> summaries = discRows.stream()
+                .map(row -> new ReconciliationReport.DiscrepancySummary((UUID) row[0], (String) row[1]))
+                .toList();
 
-        return new ReconciliationReport(
-                runId, Instant.now(), (int) matched, summaries.size(), summaries);
+        return new ReconciliationReport(runId, Instant.now(), (int) matched, summaries.size(), summaries);
     }
 }

@@ -14,13 +14,12 @@ public class SharedFlywayMigrator {
 
     @Bean
     public Flyway sharedFlyway(DataSource dataSource) {
-        Flyway flyway =
-                Flyway.configure()
-                        .dataSource(dataSource)
-                        .schemas("public")
-                        .locations("classpath:db/migration/shared")
-                        .table("flyway_schema_history_shared")
-                        .load();
+        Flyway flyway = Flyway.configure()
+                .dataSource(dataSource)
+                .schemas("public")
+                .locations("classpath:db/migration/shared")
+                .table("flyway_schema_history_shared")
+                .load();
         flyway.migrate();
         return flyway;
     }

@@ -25,14 +25,15 @@ class TenantController {
     @Operation(summary = "Provision a new tenant")
     TenantResponse provision(@Valid @RequestBody ProvisionRequest request) {
         Tenant tenant = provisioningService.provision(request.slug());
-        return new TenantResponse(tenant.id().toString(), tenant.slug(), tenant.status().name());
+        return new TenantResponse(
+                tenant.id().toString(), tenant.slug(), tenant.status().name());
     }
 
     record ProvisionRequest(
             @NotBlank
-                    @Size(min = 2, max = 63)
-                    @Pattern(regexp = "[a-z0-9-]+", message = "slug must be lowercase alphanumeric with hyphens")
-                    String slug) {}
+            @Size(min = 2, max = 63)
+            @Pattern(regexp = "[a-z0-9-]+", message = "slug must be lowercase alphanumeric with hyphens")
+            String slug) {}
 
     record TenantResponse(String id, String slug, String status) {}
 }

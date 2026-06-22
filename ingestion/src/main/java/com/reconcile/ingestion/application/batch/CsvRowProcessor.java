@@ -21,7 +21,6 @@ public class CsvRowProcessor implements ItemProcessor<java.util.Map<String, Stri
         String description = row.get("description");
         String reference = row.get("reference");
         return new LedgerEntryDraft(
-                feedId, date, Money.of(amount, Currency.getInstance(currency)), description,
-                reference);
+                feedId, date, Money.of(amount, Currency.getInstance(currency)), description, reference);
     }
 }

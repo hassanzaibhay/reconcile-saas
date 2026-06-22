@@ -24,9 +24,7 @@ public class FileIngestionJobConfig {
 
     @Bean
     public Job fileIngestionJob(
-            JobRepository jobRepository,
-            Step csvIngestionStep,
-            TenantJobExecutionListener tenantListener) {
+            JobRepository jobRepository, Step csvIngestionStep, TenantJobExecutionListener tenantListener) {
         return new JobBuilder(JOB_NAME, jobRepository)
                 .listener(tenantListener)
                 .start(csvIngestionStep)
@@ -50,22 +48,19 @@ public class FileIngestionJobConfig {
 
     @Bean
     @StepScope
-    public FlatFileItemReader<Map<String, String>> csvReader(
-            @Value("#{jobParameters['filePath']}") String filePath) {
+    public FlatFileItemReader<Map<String, String>> csvReader(@Value("#{jobParameters['filePath']}") String filePath) {
         return new FlatFileItemReaderBuilder<Map<String, String>>()
                 .name("csvReader")
                 .resource(new FileSystemResource(filePath))
                 .delimited()
                 .names("date", "amount", "currency", "description", "reference", "feed_id")
-                .fieldSetMapper(
-                        fieldSet ->
-                                Map.of(
-                                        "date", fieldSet.readString("date"),
-                                        "amount", fieldSet.readString("amount"),
-                                        "currency", fieldSet.readString("currency"),
-                                        "description", fieldSet.readString("description"),
-                                        "reference", fieldSet.readString("reference"),
-                                        "feed_id", fieldSet.readString("feed_id")))
+                .fieldSetMapper(fieldSet -> Map.of(
+                        "date", fieldSet.readString("date"),
+                        "amount", fieldSet.readString("amount"),
+                        "currency", fieldSet.readString("currency"),
+                        "description", fieldSet.readString("description"),
+                        "reference", fieldSet.readString("reference"),
+                        "feed_id", fieldSet.readString("feed_id")))
                 .linesToSkip(1)
                 .build();
     }

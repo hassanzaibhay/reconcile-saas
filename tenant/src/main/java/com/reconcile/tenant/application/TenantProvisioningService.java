@@ -18,9 +18,7 @@ public class TenantProvisioningService {
     private final ApplicationEventPublisher events;
 
     public TenantProvisioningService(
-            TenantRepository tenantRepository,
-            DataSource dataSource,
-            ApplicationEventPublisher events) {
+            TenantRepository tenantRepository, DataSource dataSource, ApplicationEventPublisher events) {
         this.tenantRepository = tenantRepository;
         this.dataSource = dataSource;
         this.events = events;

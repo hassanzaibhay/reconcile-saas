@@ -1,12 +1,10 @@
 package com.reconcile.ingestion.adapter.web;
 
-import com.reconcile.ingestion.application.batch.FileIngestionJobConfig;
 import com.reconcile.ingestion.application.TenantJobExecutionListener;
+import com.reconcile.ingestion.application.batch.FileIngestionJobConfig;
 import com.reconcile.shared.domain.TenantContext;
 import io.swagger.v3.oas.annotations.Operation;
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.util.HexFormat;
 import java.util.UUID;
@@ -45,7 +43,8 @@ class IngestionController {
     IngestionResponse upload(
             @RequestParam("file") MultipartFile file,
             @RequestParam("feedId") String feedId,
-            @RequestHeader("Idempotency-Key") String idempotencyKey) throws Exception {
+            @RequestHeader("Idempotency-Key") String idempotencyKey)
+            throws Exception {
 
         validateIdempotencyKey(idempotencyKey);
         String tenantId = TenantContext.current().toString();
@@ -63,14 +62,13 @@ class IngestionController {
         File tempFile = File.createTempFile("ingestion-", ".csv");
         file.transferTo(tempFile);
 
-        JobParameters params =
-                new JobParametersBuilder()
-                        .addString(TenantJobExecutionListener.TENANT_ID_PARAM, tenantId, true)
-                        .addString("ingestionRunId", ingestionRunId, true)
-                        .addString("feedId", feedId)
-                        .addString("contentHash", contentHash)
-                        .addString("filePath", tempFile.getAbsolutePath())
-                        .toJobParameters();
+        JobParameters params = new JobParametersBuilder()
+                .addString(TenantJobExecutionListener.TENANT_ID_PARAM, tenantId, true)
+                .addString("ingestionRunId", ingestionRunId, true)
+                .addString("feedId", feedId)
+                .addString("contentHash", contentHash)
+                .addString("filePath", tempFile.getAbsolutePath())
+                .toJobParameters();
 
         jobLauncher.run(fileIngestionJob, params);
         return new IngestionResponse(ingestionRunId, "ACCEPTED");
@@ -78,14 +76,12 @@ class IngestionController {
 
     private void validateIdempotencyKey(String key) {
         if (key == null || key.isBlank()) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST, "Idempotency-Key header is required");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Idempotency-Key header is required");
         }
         try {
             UUID.fromString(key);
         } catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST, "Idempotency-Key must be a valid UUID");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Idempotency-Key must be a valid UUID");
         }
     }
 

@@ -9,11 +9,8 @@ import org.springframework.data.repository.query.Param;
 
 interface LedgerEntryJpaRepository extends JpaRepository<LedgerEntryEntity, UUID> {
 
-    @Query(
-            "SELECT e FROM LedgerEntryEntity e WHERE e.feedId = :feedId"
-                    + " AND e.entryDate >= :from AND e.entryDate <= :to")
+    @Query("SELECT e FROM LedgerEntryEntity e WHERE e.feedId = :feedId"
+            + " AND e.entryDate >= :from AND e.entryDate <= :to")
     List<LedgerEntryEntity> findByFeedIdAndDateRange(
-            @Param("feedId") String feedId,
-            @Param("from") LocalDate from,
-            @Param("to") LocalDate to);
+            @Param("feedId") String feedId, @Param("from") LocalDate from, @Param("to") LocalDate to);
 }

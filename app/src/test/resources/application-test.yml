@@ -1,0 +1,9 @@
+reconcile:
+  security:
+    jwt:
+      secret: test-jwt-secret-must-be-at-least-32-chars
+
+spring:
+  batch:
+    job:
+      enabled: false

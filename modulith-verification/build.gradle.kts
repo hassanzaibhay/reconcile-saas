@@ -14,6 +14,7 @@ dependencies {
     testImplementation(project(":notification"))
 
     testImplementation("org.springframework.modulith:spring-modulith-starter-test")
+    testImplementation("org.springframework.modulith:spring-modulith-events-api")
     testImplementation("com.tngtech.archunit:archunit-junit5:1.4.2")
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("org.testcontainers:testcontainers")

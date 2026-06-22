@@ -29,13 +29,27 @@ public record IngestionRun(
 
     public IngestionRun complete(int rowCount) {
         return new IngestionRun(
-                id, feedId, IngestionStatus.COMPLETED, contentHash, idempotencyKey, rowCount,
-                startedAt, Instant.now(), null);
+                id,
+                feedId,
+                IngestionStatus.COMPLETED,
+                contentHash,
+                idempotencyKey,
+                rowCount,
+                startedAt,
+                Instant.now(),
+                null);
     }
 
     public IngestionRun fail(String error) {
         return new IngestionRun(
-                id, feedId, IngestionStatus.FAILED, contentHash, idempotencyKey, rowCount,
-                startedAt, Instant.now(), error);
+                id,
+                feedId,
+                IngestionStatus.FAILED,
+                contentHash,
+                idempotencyKey,
+                rowCount,
+                startedAt,
+                Instant.now(),
+                error);
     }
 }

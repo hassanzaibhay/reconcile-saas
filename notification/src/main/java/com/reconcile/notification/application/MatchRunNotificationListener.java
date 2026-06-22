@@ -1,7 +1,7 @@
 package com.reconcile.notification.application;
 
-import com.reconcile.reconciliation.application.MatchRunCompletedEvent;
 import com.reconcile.notification.domain.Notification;
+import com.reconcile.reconciliation.application.MatchRunCompletedEvent;
 import com.reconcile.shared.domain.TenantContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,9 +23,7 @@ public class MatchRunNotificationListener {
     public void on(MatchRunCompletedEvent event) {
         log.info("Match run completed: {} for tenant {}", event.matchRunId(), event.tenantId());
         Notification notification = Notification.of(
-                TenantContext.current(),
-                "MATCH_RUN_COMPLETED",
-                "{\"runId\":\"" + event.matchRunId() + "\"}");
+                TenantContext.current(), "MATCH_RUN_COMPLETED", "{\"runId\":\"" + event.matchRunId() + "\"}");
         store.save(notification);
     }
 }

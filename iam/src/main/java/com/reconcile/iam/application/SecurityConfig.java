@@ -25,12 +25,12 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http.csrf(csrf -> csrf.disable())
-                .sessionManagement(
-                        s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(
-                        auth -> auth.requestMatchers(PUBLIC_PATHS).permitAll().anyRequest().authenticated())
-                .oauth2ResourceServer(
-                        oauth2 -> oauth2.jwt(jwt -> {}))
+                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth.requestMatchers(PUBLIC_PATHS)
+                        .permitAll()
+                        .anyRequest()
+                        .authenticated())
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> {}))
                 .build();
     }
 
@@ -38,8 +38,7 @@ public class SecurityConfig {
     @Bean
     @Profile({"local", "default", "test"})
     public JwtDecoder localJwtDecoder(
-            @Value("${reconcile.security.jwt.secret:change-me-in-env-at-least-32-chars-long!!}")
-                    String secret) {
+            @Value("${reconcile.security.jwt.secret:change-me-in-env-at-least-32-chars-long!!}") String secret) {
         byte[] keyBytes = secret.getBytes();
         SecretKeySpec key = new SecretKeySpec(keyBytes, "HmacSHA256");
         return NimbusJwtDecoder.withSecretKey(key).build();

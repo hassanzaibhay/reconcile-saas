@@ -16,8 +16,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  *
  * <p>Usage: annotate the test class or method with {@code @TenantTest}.
  */
-public class TenantTestExtension
-        implements BeforeEachCallback, AfterEachCallback, ParameterResolver {
+public class TenantTestExtension implements BeforeEachCallback, AfterEachCallback, ParameterResolver {
 
     private static final String TENANT_ID_KEY = "tenantId";
 
@@ -42,19 +41,12 @@ public class TenantTestExtension
 
     @Override
     public void afterEach(ExtensionContext context) {
-        TenantId id =
-                (TenantId)
-                        context.getStore(
-                                        ExtensionContext.Namespace.create(
-                                                TenantTestExtension.class))
-                                .get(TENANT_ID_KEY);
+        TenantId id = (TenantId) context.getStore(ExtensionContext.Namespace.create(TenantTestExtension.class))
+                .get(TENANT_ID_KEY);
         try {
             if (id != null) {
-                DataSource ds =
-                        SpringExtension.getApplicationContext(context).getBean(DataSource.class);
-                ds.getConnection()
-                        .createStatement()
-                        .execute("DROP SCHEMA IF EXISTS " + id.schemaName() + " CASCADE");
+                DataSource ds = SpringExtension.getApplicationContext(context).getBean(DataSource.class);
+                ds.getConnection().createStatement().execute("DROP SCHEMA IF EXISTS " + id.schemaName() + " CASCADE");
             }
         } catch (Exception e) {
             // best-effort teardown
@@ -64,14 +56,12 @@ public class TenantTestExtension
     }
 
     @Override
-    public boolean supportsParameter(
-            ParameterContext parameterContext, ExtensionContext extensionContext) {
+    public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext) {
         return parameterContext.getParameter().getType().equals(TenantId.class);
     }
 
     @Override
-    public Object resolveParameter(
-            ParameterContext parameterContext, ExtensionContext extensionContext) {
+    public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) {
         return extensionContext
                 .getStore(ExtensionContext.Namespace.create(TenantTestExtension.class))
                 .get(TENANT_ID_KEY, TenantId.class);

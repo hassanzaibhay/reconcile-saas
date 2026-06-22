@@ -28,15 +28,12 @@ class SchemaPerTenantConnectionProvider implements MultiTenantConnectionProvider
     @Override
     public Connection getConnection(String tenantIdentifier) throws SQLException {
         Connection connection = dataSource.getConnection();
-        connection
-                .createStatement()
-                .execute("SET search_path TO " + tenantIdentifier);
+        connection.createStatement().execute("SET search_path TO " + tenantIdentifier);
         return connection;
     }
 
     @Override
-    public void releaseConnection(String tenantIdentifier, Connection connection)
-            throws SQLException {
+    public void releaseConnection(String tenantIdentifier, Connection connection) throws SQLException {
         connection.createStatement().execute("RESET search_path");
         connection.close();
     }

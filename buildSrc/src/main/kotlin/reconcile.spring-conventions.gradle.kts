@@ -18,4 +18,6 @@ dependencies {
     "testImplementation"("org.springframework.boot:spring-boot-starter-test")
     "testImplementation"("org.testcontainers:junit-jupiter")
     "testImplementation"("org.testcontainers:postgresql")
+    // Gradle 9+ requires this explicitly for JUnit Platform test executor
+    "testRuntimeOnly"("org.junit.platform:junit-platform-launcher")
 }

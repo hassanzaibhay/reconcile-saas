@@ -20,8 +20,7 @@ public class TenantJobExecutionListener implements JobExecutionListener {
     public void beforeJob(JobExecution jobExecution) {
         String tenantId = jobExecution.getJobParameters().getString(TENANT_ID_PARAM);
         if (tenantId == null || tenantId.isBlank()) {
-            throw new IllegalStateException(
-                    "Job parameter '" + TENANT_ID_PARAM + "' is required but missing");
+            throw new IllegalStateException("Job parameter '" + TENANT_ID_PARAM + "' is required but missing");
         }
         TenantContext.set(TenantId.of(UUID.fromString(tenantId)));
     }

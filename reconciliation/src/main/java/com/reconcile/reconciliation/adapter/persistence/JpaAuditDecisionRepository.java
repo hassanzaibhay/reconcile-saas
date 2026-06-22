@@ -30,13 +30,28 @@ class JpaAuditDecisionRepository implements AuditDecisionRepository {
     @Entity
     @Table(name = "audit_decision")
     static class AuditDecisionEntity {
-        @Id UUID id;
-        @Column(name = "match_run_id") UUID matchRunId;
-        @Column(name = "rule_id") String ruleId;
-        @Column(name = "entry_id") UUID entryId;
-        @Column(name = "decision") String decision;
-        @Column(name = "reason") String reason;
-        @Column(name = "decided_at") Instant decidedAt;
-        @Column(name = "decided_by") String decidedBy;
+        @Id
+        UUID id;
+
+        @Column(name = "match_run_id")
+        UUID matchRunId;
+
+        @Column(name = "rule_id")
+        String ruleId;
+
+        @Column(name = "entry_id")
+        UUID entryId;
+
+        @Column(name = "decision")
+        String decision;
+
+        @Column(name = "reason")
+        String reason;
+
+        @Column(name = "decided_at")
+        Instant decidedAt;
+
+        @Column(name = "decided_by")
+        String decidedBy;
     }
 }
