@@ -1,6 +1,6 @@
 package com.reconcile.verification;
 
-import com.reconcile.app.Application;
+import com.reconcile.Application;
 import org.junit.jupiter.api.Test;
 import org.springframework.modulith.core.ApplicationModules;
 

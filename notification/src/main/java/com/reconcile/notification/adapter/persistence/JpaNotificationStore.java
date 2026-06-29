@@ -5,6 +5,8 @@ import com.reconcile.notification.domain.Notification;
 import jakarta.persistence.*;
 import java.time.Instant;
 import java.util.UUID;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -33,7 +35,10 @@ class JpaNotificationStore implements NotificationStore {
         @Column(name = "entity_id")
         String entityId;
 
+        // columnDefinition affects DDL only; @JdbcTypeCode(JSON) makes Hibernate bind the value
+        // as a JSON type so PostgreSQL accepts it for the jsonb column (varchar cast is rejected).
         @Column(columnDefinition = "jsonb")
+        @JdbcTypeCode(SqlTypes.JSON)
         String payload;
 
         @Column(name = "occurred_at")

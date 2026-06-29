@@ -5,6 +5,7 @@ plugins {
 // shared has no domainImplementation deps — it IS the shared domain root.
 // main gets spring-context for @Component/@Configuration in adapters.
 dependencies {
+    compileOnly("org.springframework.modulith:spring-modulith-api")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("jakarta.validation:jakarta.validation-api")
 

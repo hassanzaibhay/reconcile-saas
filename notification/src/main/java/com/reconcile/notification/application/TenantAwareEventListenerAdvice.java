@@ -4,31 +4,32 @@ import com.reconcile.shared.domain.TenantContext;
 import com.reconcile.shared.domain.TenantScopedEvent;
 import java.lang.reflect.Method;
 import org.aopalliance.intercept.MethodInterceptor;
+import org.springframework.aop.framework.Advised;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.modulith.events.ApplicationModuleListener;
 import org.springframework.stereotype.Component;
 
 /**
- * BeanPostProcessor that wraps every {@code @ApplicationModuleListener} method invocation with
- * TenantContext propagation. Reads {@link TenantScopedEvent#tenantId()} from the event payload and
- * sets/clears TenantContext around the listener call.
+ * BeanPostProcessor that weaves TenantContext propagation into every
+ * {@code @ApplicationModuleListener} method. Reads {@link TenantScopedEvent#tenantId()} from the
+ * event payload and sets/clears TenantContext around the listener call.
  *
- * <p>Guarantees: listeners never need to set TenantContext themselves; missing the context is a
- * bug in the event producer, not the consumer.
+ * <p>When the bean is already a Spring AOP proxy ({@link Advised}), the interceptor is prepended
+ * to the existing advice chain to avoid creating a proxy-of-a-proxy (which breaks
+ * {@code MethodIntrospector} and {@code EventListenerMethodProcessor}).
  */
 @Component
 public class TenantAwareEventListenerAdvice implements BeanPostProcessor {
 
     @Override
     public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-        boolean hasModuleListener = hasApplicationModuleListenerMethod(bean.getClass());
-        if (!hasModuleListener) {
+        if (!hasApplicationModuleListenerMethod(bean.getClass())) {
             return bean;
         }
-        ProxyFactory factory = new ProxyFactory(bean);
-        factory.addAdvice((MethodInterceptor) invocation -> {
+        MethodInterceptor interceptor = invocation -> {
             Object[] args = invocation.getArguments();
             if (args.length == 1
                     && args[0] instanceof TenantScopedEvent event
@@ -41,18 +42,29 @@ public class TenantAwareEventListenerAdvice implements BeanPostProcessor {
                 }
             }
             return invocation.proceed();
-        });
+        };
+        // Prefer adding to an existing AOP proxy rather than wrapping with a second proxy.
+        // A proxy-of-a-proxy breaks EventListenerMethodProcessor (MethodIntrospector fails on
+        // the CGLIB-generated class of the outer proxy at context startup).
+        if (bean instanceof Advised advised && !advised.isFrozen()) {
+            advised.addAdvice(0, interceptor);
+            return bean;
+        }
+        ProxyFactory factory = new ProxyFactory(bean);
+        factory.addAdvice(interceptor);
         return factory.getProxy();
     }
 
     private boolean hasApplicationModuleListenerMethod(Class<?> clazz) {
         for (Method m : clazz.getMethods()) {
-            if (m.isAnnotationPresent(ApplicationModuleListener.class)) return true;
+            // AnnotationUtils.findAnnotation traverses the class hierarchy so CGLIB-generated
+            // override methods (which do not carry the source annotation) are handled correctly.
+            if (AnnotationUtils.findAnnotation(m, ApplicationModuleListener.class) != null) return true;
         }
         return false;
     }
 
     private boolean isModuleListenerMethod(Method method) {
-        return method.isAnnotationPresent(ApplicationModuleListener.class);
+        return AnnotationUtils.findAnnotation(method, ApplicationModuleListener.class) != null;
     }
 }

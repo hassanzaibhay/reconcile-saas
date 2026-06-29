@@ -8,7 +8,6 @@ import javax.sql.DataSource;
 import org.flywaydb.core.Flyway;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class TenantProvisioningService {
@@ -24,7 +23,6 @@ public class TenantProvisioningService {
         this.events = events;
     }
 
-    @Transactional
     public Tenant provision(String slug) {
         TenantId id = TenantId.of(UUID.randomUUID());
         Tenant tenant = Tenant.create(id, slug);

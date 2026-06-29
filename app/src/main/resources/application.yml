@@ -2,6 +2,7 @@ spring:
   application:
     name: reconcile-saas
   jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: none
     properties:

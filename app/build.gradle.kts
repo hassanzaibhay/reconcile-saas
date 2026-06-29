@@ -28,6 +28,7 @@ dependencies {
 
     testImplementation("org.testcontainers:testcontainers")
     testImplementation("org.springframework.security:spring-security-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-batch")
 }
 
 val integrationTest by sourceSets.creating {
@@ -51,7 +52,7 @@ tasks.register<Test>("integrationTest") {
 }
 
 springBoot {
-    mainClass = "com.reconcile.app.Application"
+    mainClass = "com.reconcile.Application"
 }
 
 // Spring Boot disables the plain jar task; re-enable so modulith-verification can depend on :app

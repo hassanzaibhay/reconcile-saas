@@ -6,6 +6,7 @@ dependencies {
     "domainImplementation"(project(path = ":shared", configuration = "domainElements"))
     "domainImplementation"(project(path = ":ledger", configuration = "domainElements"))
 
+    compileOnly("org.springframework.modulith:spring-modulith-api")
     implementation(project(":shared"))
     implementation(project(":ledger"))
     implementation("org.springframework.boot:spring-boot-starter-web")

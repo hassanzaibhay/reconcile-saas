@@ -1,4 +1,4 @@
-package com.reconcile.app;
+package com.reconcile;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
