@@ -1,15 +1,33 @@
 package com.reconcile.reconciliation.domain;
 
 import com.reconcile.ledger.domain.LedgerEntry;
-import java.util.Optional;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Matches two entries across different feeds when they have equal amount magnitude, opposite signs,
- * and the same date. This is the canonical exact-match rule for bank-to-processor reconciliation.
+ * Matches entries across different feeds when the amount is an exact match under the configured
+ * {@link MatchingAxis}, same currency, and identical date. Returns ALL exact neighbors so the
+ * engine can detect multi-feed contention (3+ entries that all exactly match each other →
+ * ambiguous cluster, not silent greedy pairing).
+ *
+ * <p>Default axis is {@link MatchingAxis#SUM_TO_ZERO}: pair sums to zero (opposite-sign
+ * debit/credit). Use {@link MatchingAxis#DIFFERENCE} for same-sign bank/ledger feeds where the
+ * pair is approximately equal.
  */
 public final class ExactAmountAndDateRule implements MatchRule {
 
     public static final String RULE_ID = "EXACT_AMOUNT_AND_DATE";
+
+    private final MatchingAxis axis;
+
+    /** Constructs with {@link MatchingAxis#SUM_TO_ZERO} — backward-compatible default. */
+    public ExactAmountAndDateRule() {
+        this(MatchingAxis.SUM_TO_ZERO);
+    }
+
+    public ExactAmountAndDateRule(MatchingAxis axis) {
+        this.axis = axis;
+    }
 
     @Override
     public String ruleId() {
@@ -17,15 +35,17 @@ public final class ExactAmountAndDateRule implements MatchRule {
     }
 
     @Override
-    public Optional<LedgerEntry> match(LedgerEntry candidate, Iterable<LedgerEntry> pool) {
+    public List<LedgerEntry> neighbors(LedgerEntry candidate, List<LedgerEntry> pool) {
+        List<LedgerEntry> result = new ArrayList<>();
         for (LedgerEntry other : pool) {
             if (other.id().equals(candidate.id())) continue;
             if (!other.feedId().equals(candidate.feedId())
+                    && other.amount().currency().equals(candidate.amount().currency())
                     && other.entryDate().equals(candidate.entryDate())
-                    && candidate.amount().add(other.amount()).isZero()) {
-                return Optional.of(other);
+                    && axis.isExactMatch(candidate.amount(), other.amount())) {
+                result.add(other);
             }
         }
-        return Optional.empty();
+        return result;
     }
 }

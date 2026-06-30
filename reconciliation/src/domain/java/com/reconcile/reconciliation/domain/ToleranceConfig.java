@@ -3,13 +3,18 @@ package com.reconcile.reconciliation.domain;
 import java.math.BigDecimal;
 import java.util.UUID;
 
+/**
+ * Per-tenant tolerance parameters for the AmountToleranceDateDriftRule. Stored in the tenant
+ * schema (reconciliation_config table, sub-slice 1). This record is pure domain — no Spring, no
+ * JPA.
+ *
+ * <p>{@code axis} controls which sign convention the matching rules use. See {@link MatchingAxis}.
+ */
 public record ToleranceConfig(
         UUID id,
         BigDecimal absoluteTolerance,
         BigDecimal percentageTolerance,
         int maxDateDriftDays,
-        // SLICE-1 MIGRATION: axis VARCHAR(20) NOT NULL DEFAULT 'SUM_TO_ZERO' in V6 migration.
-        // When feat/tolerance-config merges, remove this comment.
         MatchingAxis axis) {
 
     /** Convenience constructor: axis defaults to {@link MatchingAxis#SUM_TO_ZERO}. */

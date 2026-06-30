@@ -9,6 +9,23 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Uniform graph-partition matching engine.
+ *
+ * <p>For each rule (in list order) the engine:
+ *
+ * <ol>
+ *   <li>Freezes the current working pool.
+ *   <li>Calls {@code rule.neighbors()} for every node against the frozen snapshot to build an
+ *       undirected adjacency graph.
+ *   <li>Finds connected components via BFS (start nodes in UUID sort order).
+ *   <li>Partitions by component size: size-1 → stays in pool for the next pass; size-2 →
+ *       matched pair; size-≥3 → ambiguous cluster, all removed.
+ * </ol>
+ *
+ * <p>Exact precedence follows from pass order: the exact rule runs first and removes its
+ * matched/clustered entries before the tolerance rule sees the residual.
+ */
 @Service
 public class DefaultMatchingEngine implements MatchingEngine {
 
@@ -23,43 +40,96 @@ public class DefaultMatchingEngine implements MatchingEngine {
     @Override
     @Transactional
     public MatchRunResult run(MatchRunId runId, List<MatchRule> rules, Iterable<LedgerEntry> entries) {
-        List<LedgerEntry> pool = new ArrayList<>();
-        entries.forEach(pool::add);
+        List<LedgerEntry> sortedEntries = new ArrayList<>();
+        entries.forEach(sortedEntries::add);
+        sortedEntries.sort(Comparator.comparing(e -> e.id().value()));
+        LinkedHashSet<LedgerEntry> workingPool = new LinkedHashSet<>(sortedEntries);
 
-        Set<LedgerEntryId> matched = new LinkedHashSet<>();
-        Map<LedgerEntryId, LedgerEntryId> matchPairs = new LinkedHashMap<>();
+        Map<LedgerEntryId, LedgerEntryId> matches = new LinkedHashMap<>();
+        List<AmbiguousCluster> clusters = new ArrayList<>();
         List<Discrepancy> discrepancies = new ArrayList<>();
 
-        for (LedgerEntry candidate : pool) {
-            if (matched.contains(candidate.id())) continue;
+        for (MatchRule rule : rules) {
+            runPass(rule, workingPool, runId, matches, clusters);
+        }
 
-            boolean found = false;
-            for (MatchRule rule : rules) {
-                Optional<LedgerEntry> counterpart = rule.match(
-                        candidate,
-                        pool.stream().filter(e -> !matched.contains(e.id())).toList());
-                if (counterpart.isPresent()) {
-                    LedgerEntry other = counterpart.get();
-                    matched.add(candidate.id());
-                    matched.add(other.id());
-                    matchPairs.put(candidate.id(), other.id());
-                    recordDecision(runId, rule.ruleId(), candidate.id(), "MATCHED", null);
-                    recordDecision(runId, rule.ruleId(), other.id(), "MATCHED", null);
-                    found = true;
-                    break;
+        for (LedgerEntry e : workingPool) {
+            discrepancies.add(Discrepancy.of(runId, e.id(), Discrepancy.Reason.NO_COUNTERPART));
+            recordDecision(runId, "NONE", e.id(), "UNMATCHED", Discrepancy.Reason.NO_COUNTERPART.name());
+        }
+
+        MatchRunResult result = new MatchRunResult(runId, matches, clusters, discrepancies);
+        events.publishEvent(new MatchRunCompletedEvent(runId));
+        return result;
+    }
+
+    private void runPass(
+            MatchRule rule,
+            LinkedHashSet<LedgerEntry> workingPool,
+            MatchRunId runId,
+            Map<LedgerEntryId, LedgerEntryId> matches,
+            List<AmbiguousCluster> clusters) {
+
+        List<LedgerEntry> frozen = List.copyOf(workingPool);
+
+        // Build adjacency map over frozen pool
+        Map<LedgerEntryId, List<LedgerEntry>> adjacency = new LinkedHashMap<>();
+        for (LedgerEntry node : frozen) {
+            adjacency.put(node.id(), rule.neighbors(node, frozen));
+        }
+
+        // BFS connected components; start nodes in frozen (sort) order
+        Set<LedgerEntryId> visited = new LinkedHashSet<>();
+        List<List<LedgerEntry>> components = new ArrayList<>();
+
+        for (LedgerEntry start : frozen) {
+            if (visited.contains(start.id())) continue;
+
+            List<LedgerEntry> component = new ArrayList<>();
+            Queue<LedgerEntry> queue = new ArrayDeque<>();
+            queue.add(start);
+            visited.add(start.id());
+
+            while (!queue.isEmpty()) {
+                LedgerEntry node = queue.poll();
+                component.add(node);
+                for (LedgerEntry neighbor : adjacency.get(node.id())) {
+                    if (!visited.contains(neighbor.id())) {
+                        visited.add(neighbor.id());
+                        queue.add(neighbor);
+                    }
                 }
             }
 
-            if (!found) {
-                Discrepancy d = Discrepancy.of(runId, candidate.id(), Discrepancy.Reason.NO_COUNTERPART);
-                discrepancies.add(d);
-                recordDecision(runId, "NONE", candidate.id(), "UNMATCHED", Discrepancy.Reason.NO_COUNTERPART.name());
-            }
+            component.sort(Comparator.comparing(e -> e.id().value()));
+            components.add(component);
         }
 
-        MatchRunResult result = new MatchRunResult(runId, matchPairs, discrepancies);
-        events.publishEvent(new MatchRunCompletedEvent(runId));
-        return result;
+        // Partition by size; process in order of min-member UUID for determinism
+        components.sort(Comparator.comparing(c -> c.get(0).id().value()));
+
+        for (List<LedgerEntry> comp : components) {
+            switch (comp.size()) {
+                case 1 -> {
+                    /* isolated — leave in workingPool for the next pass */
+                }
+                case 2 -> {
+                    LedgerEntry a = comp.get(0), b = comp.get(1);
+                    workingPool.remove(a);
+                    workingPool.remove(b);
+                    matches.put(a.id(), b.id());
+                    recordDecision(runId, rule.ruleId(), a.id(), "MATCHED", null);
+                    recordDecision(runId, rule.ruleId(), b.id(), "MATCHED", null);
+                }
+                default -> {
+                    List<LedgerEntryId> memberIds =
+                            comp.stream().map(LedgerEntry::id).toList();
+                    comp.forEach(workingPool::remove);
+                    clusters.add(new AmbiguousCluster(memberIds));
+                    comp.forEach(m -> recordDecision(runId, rule.ruleId(), m.id(), "AMBIGUOUS", null));
+                }
+            }
+        }
     }
 
     private void recordDecision(

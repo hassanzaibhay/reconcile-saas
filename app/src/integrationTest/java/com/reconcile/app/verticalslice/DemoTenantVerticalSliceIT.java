@@ -124,6 +124,9 @@ class DemoTenantVerticalSliceIT {
         assertThat(result.matches())
                 .as("ExactAmountAndDateRule must match the one credit/debit pair")
                 .hasSize(1);
+        assertThat(result.ambiguousClusters())
+                .as("No ambiguous clusters expected for exact-only fixture")
+                .isEmpty();
         assertThat(result.discrepancies()).as("No unmatched entries expected").isEmpty();
 
         // Two audit_decision rows (one per entry, both MATCHED) must be in T1's schema.
