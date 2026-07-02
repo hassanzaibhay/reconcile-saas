@@ -7,5 +7,5 @@ import java.util.UUID;
 public record ReconciliationReport(
         UUID runId, Instant generatedAt, int matchedCount, int unmatchedCount, List<DiscrepancySummary> discrepancies) {
 
-    public record DiscrepancySummary(UUID entryId, String reason) {}
+    public record DiscrepancySummary(UUID entryId, String type) {}
 }

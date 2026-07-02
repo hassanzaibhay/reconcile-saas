@@ -45,17 +45,17 @@ public class DefaultMatchingEngine implements MatchingEngine {
         sortedEntries.sort(Comparator.comparing(e -> e.id().value()));
         LinkedHashSet<LedgerEntry> workingPool = new LinkedHashSet<>(sortedEntries);
 
-        Map<LedgerEntryId, LedgerEntryId> matches = new LinkedHashMap<>();
+        List<MatchPair> matches = new ArrayList<>();
         List<AmbiguousCluster> clusters = new ArrayList<>();
-        List<Discrepancy> discrepancies = new ArrayList<>();
+        List<Discrepancy.Unmatched> discrepancies = new ArrayList<>();
 
         for (MatchRule rule : rules) {
             runPass(rule, workingPool, runId, matches, clusters);
         }
 
         for (LedgerEntry e : workingPool) {
-            discrepancies.add(Discrepancy.of(runId, e.id(), Discrepancy.Reason.NO_COUNTERPART));
-            recordDecision(runId, "NONE", e.id(), "UNMATCHED", Discrepancy.Reason.NO_COUNTERPART.name());
+            discrepancies.add(Discrepancy.of(runId, e.id()));
+            recordDecision(runId, "NONE", e.id(), "UNMATCHED", null);
         }
 
         MatchRunResult result = new MatchRunResult(runId, matches, clusters, discrepancies);
@@ -67,7 +67,7 @@ public class DefaultMatchingEngine implements MatchingEngine {
             MatchRule rule,
             LinkedHashSet<LedgerEntry> workingPool,
             MatchRunId runId,
-            Map<LedgerEntryId, LedgerEntryId> matches,
+            List<MatchPair> matches,
             List<AmbiguousCluster> clusters) {
 
         List<LedgerEntry> frozen = List.copyOf(workingPool);
@@ -117,7 +117,7 @@ public class DefaultMatchingEngine implements MatchingEngine {
                     LedgerEntry a = comp.get(0), b = comp.get(1);
                     workingPool.remove(a);
                     workingPool.remove(b);
-                    matches.put(a.id(), b.id());
+                    matches.add(new MatchPair(a.id(), b.id(), rule.ruleId()));
                     recordDecision(runId, rule.ruleId(), a.id(), "MATCHED", null);
                     recordDecision(runId, rule.ruleId(), b.id(), "MATCHED", null);
                 }

@@ -1,14 +1,12 @@
 package com.reconcile.reconciliation.domain;
 
-import com.reconcile.ledger.domain.LedgerEntryId;
 import java.util.List;
-import java.util.Map;
 
 public record MatchRunResult(
         MatchRunId runId,
-        Map<LedgerEntryId, LedgerEntryId> matches,
+        List<MatchPair> matches,
         List<AmbiguousCluster> ambiguousClusters,
-        List<Discrepancy> discrepancies) {
+        List<Discrepancy.Unmatched> discrepancies) {
 
     public int matchedCount() {
         return matches.size();

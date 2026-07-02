@@ -296,8 +296,9 @@ class AmountToleranceDateDriftRuleTest {
         // Tolerance pass: C and D are isolated (same feed → not adjacent to each other; A is gone)
         assertThat(result.ambiguousClusters()).isEmpty();
         assertThat(result.discrepancies()).hasSize(2);
-        Set<LedgerEntryId> unmatchedIds =
-                result.discrepancies().stream().map(Discrepancy::entryId).collect(Collectors.toSet());
+        Set<LedgerEntryId> unmatchedIds = result.discrepancies().stream()
+                .map(Discrepancy.Unmatched::entryId)
+                .collect(Collectors.toSet());
         assertThat(unmatchedIds).containsExactlyInAnyOrder(c.id(), d.id());
     }
 
@@ -404,8 +405,11 @@ class AmountToleranceDateDriftRuleTest {
     }
 
     private static Set<LedgerEntryId> matchedIdSet(MatchRunResult result) {
-        Set<LedgerEntryId> ids = new java.util.HashSet<>(result.matches().keySet());
-        ids.addAll(result.matches().values());
+        Set<LedgerEntryId> ids = new java.util.HashSet<>();
+        result.matches().forEach(p -> {
+            ids.add(p.left());
+            ids.add(p.right());
+        });
         return ids;
     }
 

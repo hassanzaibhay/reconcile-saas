@@ -160,10 +160,12 @@ class MatchingEngineTest {
                 .collect(Collectors.toSet());
         assertThat(clusters1).isEqualTo(clusters2);
 
-        Set<LedgerEntryId> unmatched1 =
-                result1.discrepancies().stream().map(Discrepancy::entryId).collect(Collectors.toSet());
-        Set<LedgerEntryId> unmatched2 =
-                result2.discrepancies().stream().map(Discrepancy::entryId).collect(Collectors.toSet());
+        Set<LedgerEntryId> unmatched1 = result1.discrepancies().stream()
+                .map(Discrepancy.Unmatched::entryId)
+                .collect(Collectors.toSet());
+        Set<LedgerEntryId> unmatched2 = result2.discrepancies().stream()
+                .map(Discrepancy.Unmatched::entryId)
+                .collect(Collectors.toSet());
         assertThat(unmatched1).isEqualTo(unmatched2);
     }
 
@@ -176,8 +178,11 @@ class MatchingEngineTest {
     }
 
     private static Set<LedgerEntryId> matchedIdSet(MatchRunResult result) {
-        Set<LedgerEntryId> ids = new java.util.HashSet<>(result.matches().keySet());
-        ids.addAll(result.matches().values());
+        Set<LedgerEntryId> ids = new java.util.HashSet<>();
+        result.matches().forEach(p -> {
+            ids.add(p.left());
+            ids.add(p.right());
+        });
         return ids;
     }
 }

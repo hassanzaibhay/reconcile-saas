@@ -3,15 +3,17 @@ package com.reconcile.reconciliation.domain;
 import com.reconcile.ledger.domain.LedgerEntryId;
 import java.util.UUID;
 
-public record Discrepancy(UUID id, MatchRunId matchRunId, LedgerEntryId entryId, Reason reason) {
+public sealed interface Discrepancy permits Discrepancy.Unmatched, Discrepancy.Ambiguous {
 
-    public enum Reason {
-        NO_COUNTERPART,
-        AMOUNT_MISMATCH,
-        DATE_MISMATCH,
+    UUID id();
+
+    MatchRunId matchRunId();
+
+    static Unmatched of(MatchRunId matchRunId, LedgerEntryId entryId) {
+        return new Unmatched(UUID.randomUUID(), matchRunId, entryId);
     }
 
-    public static Discrepancy of(MatchRunId matchRunId, LedgerEntryId entryId, Reason reason) {
-        return new Discrepancy(UUID.randomUUID(), matchRunId, entryId, reason);
-    }
+    record Unmatched(UUID id, MatchRunId matchRunId, LedgerEntryId entryId) implements Discrepancy {}
+
+    record Ambiguous(UUID id, MatchRunId matchRunId, AmbiguousCluster cluster) implements Discrepancy {}
 }
