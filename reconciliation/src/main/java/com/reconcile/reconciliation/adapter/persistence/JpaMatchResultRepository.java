@@ -27,6 +27,18 @@ class JpaMatchResultRepository implements MatchResultRepository {
             entity.ruleId = pair.ruleId();
             entity.matchedAt = Instant.now();
             em.persist(entity);
+
+            Instant matchedAt = Instant.now();
+            em.persist(matchedEntry(pair.left().value(), entity.id, matchedAt));
+            em.persist(matchedEntry(pair.right().value(), entity.id, matchedAt));
         }
+    }
+
+    private MatchedEntryEntity matchedEntry(UUID ledgerEntryId, UUID matchResultId, Instant matchedAt) {
+        MatchedEntryEntity entity = new MatchedEntryEntity();
+        entity.ledgerEntryId = ledgerEntryId;
+        entity.matchResultId = matchResultId;
+        entity.matchedAt = matchedAt;
+        return entity;
     }
 }

@@ -29,6 +29,9 @@ dependencies {
     testImplementation("org.testcontainers:testcontainers")
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("org.springframework.boot:spring-boot-starter-batch")
+    // iam declares this as `implementation`, so it isn't compile-visible to app's test sources;
+    // needed here to reference Jwt/JwtAuthenticationToken when minting test tokens.
+    testImplementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
 }
 
 val integrationTest by sourceSets.creating {

@@ -22,4 +22,11 @@ class DiscrepancyEntity {
 
     @Column(name = "created_at")
     Instant createdAt;
+
+    @Column(name = "status")
+    String status = "OPEN";
+
+    @Version
+    @Column(name = "version")
+    int version;
 }
