@@ -23,14 +23,21 @@ public class SecurityConfig {
     };
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(
+            HttpSecurity http,
+            ApiErrorAuthenticationEntryPoint authenticationEntryPoint,
+            ApiErrorAccessDeniedHandler accessDeniedHandler)
+            throws Exception {
         return http.csrf(csrf -> csrf.disable())
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth.requestMatchers(PUBLIC_PATHS)
                         .permitAll()
                         .anyRequest()
                         .authenticated())
-                .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> {}))
+                .oauth2ResourceServer(
+                        oauth2 -> oauth2.jwt(jwt -> {}).authenticationEntryPoint(authenticationEntryPoint))
+                .exceptionHandling(ex ->
+                        ex.authenticationEntryPoint(authenticationEntryPoint).accessDeniedHandler(accessDeniedHandler))
                 .build();
     }
 
