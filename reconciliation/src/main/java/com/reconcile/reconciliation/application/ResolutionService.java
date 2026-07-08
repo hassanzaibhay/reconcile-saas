@@ -21,14 +21,19 @@ public class ResolutionService {
 
     private final ResolutionRepository resolutionRepository;
     private final MatchResultRepository matchResultRepository;
+    private final DiscrepancyQueryPort discrepancyQueryPort;
 
-    public ResolutionService(ResolutionRepository resolutionRepository, MatchResultRepository matchResultRepository) {
+    public ResolutionService(
+            ResolutionRepository resolutionRepository,
+            MatchResultRepository matchResultRepository,
+            DiscrepancyQueryPort discrepancyQueryPort) {
         this.resolutionRepository = resolutionRepository;
         this.matchResultRepository = matchResultRepository;
+        this.discrepancyQueryPort = discrepancyQueryPort;
     }
 
     public Optional<DiscrepancyForResolution> find(UUID discrepancyId) {
-        return resolutionRepository.load(discrepancyId);
+        return discrepancyQueryPort.loadDetail(discrepancyId);
     }
 
     @Transactional

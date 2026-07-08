@@ -1,16 +1,12 @@
 package com.reconcile.reconciliation.adapter.persistence;
 
 import com.reconcile.ledger.domain.LedgerEntryId;
-import com.reconcile.reconciliation.application.DiscrepancyForResolution;
 import com.reconcile.reconciliation.application.ResolutionRepository;
-import com.reconcile.reconciliation.domain.AmbiguousCluster;
-import com.reconcile.reconciliation.domain.MatchRunId;
 import com.reconcile.reconciliation.domain.Pairing;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Repository;
@@ -20,31 +16,6 @@ class JpaResolutionRepository implements ResolutionRepository {
 
     @PersistenceContext
     private EntityManager em;
-
-    @Override
-    public Optional<DiscrepancyForResolution> load(UUID discrepancyId) {
-        DiscrepancyEntity entity = em.find(DiscrepancyEntity.class, discrepancyId);
-        if (entity == null) {
-            return Optional.empty();
-        }
-
-        AmbiguousCluster cluster = null;
-        LedgerEntryId unmatchedEntryId = null;
-        if ("AMBIGUOUS".equals(entity.type)) {
-            List<UUID> memberIds = em.createQuery(
-                            "SELECT m.ledgerEntryId FROM AmbiguousClusterMemberEntity m WHERE m.discrepancyId = :id",
-                            UUID.class)
-                    .setParameter("id", discrepancyId)
-                    .getResultList();
-            cluster = new AmbiguousCluster(
-                    memberIds.stream().map(LedgerEntryId::of).toList());
-        } else {
-            unmatchedEntryId = LedgerEntryId.of(entity.unmatchedEntryId);
-        }
-
-        return Optional.of(new DiscrepancyForResolution(
-                entity.id, MatchRunId.of(entity.matchRunId), entity.type, unmatchedEntryId, cluster, entity.status));
-    }
 
     @Override
     public void recordUnmatchedReviewed(UUID discrepancyId, UUID resolutionId, String resolvedBy) {

@@ -3,12 +3,9 @@ package com.reconcile.reconciliation.application;
 import com.reconcile.ledger.domain.LedgerEntryId;
 import com.reconcile.reconciliation.domain.Pairing;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 public interface ResolutionRepository {
-
-    Optional<DiscrepancyForResolution> load(UUID discrepancyId);
 
     /**
      * Flips the discrepancy to RESOLVED and records an UNMATCHED_REVIEWED resolution. Throws
